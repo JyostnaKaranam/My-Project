@@ -1,0 +1,92 @@
+{
+    "users": [
+        {
+            "name": "test",
+            "email": "test@gmail.com",
+            "age": 22,
+            "sex": "Male",
+            "password": "123",
+            "resume": "   Jyostna Karanam       \t\n karanamjyostna14@gmail.com  (+91) 9440736579  Guntur, Andhra Pradesh and 522003   www.linkedin.com/in/jyostna-karanam  github.com/JyostnaKaranam\nPROFILE SUMMARY\t\nArtificial Intelligence and Machine Learning Undergraduate seeking opportunities to apply academic knowledge and hands-on experience in dynamic professional environment to contribute to innovative projects and enhance technical skills. \nEDUCATION\nBachelors in Artificial Intelligence and Machine Learning |CGPA:8.6             2021 \u2013 present \nVasireddy Venkatadri Institute of Technology | Nambur, India\nIntermediate | Percentage : 97%                                                                                                     2019 \u2013 2021                                                                                                                        \nSri Chaitanya junior college | Guntur, India\nSSC | The Children's School | Guntur, India |GPA:9.8                                                                                  2019\nTECHNICAL SKILLS\nProgramming Languages:\u00a0Python.\nWeb Development:\u00a0HTML, CSS\nFrameworks: Tailwind CSS, Streamlit\nDatabase Management:\u00a0SQL\nMachine Learning:\u00a0Supervised/Unsupervised Learning, Model Development,NLP.\nVersion Control:\u00a0Git, GitHub\nCERTIFICATIONS\t\nInfosys Springboard \u2013 HTML, CSS, JavaScript | Infosys                                           Jan 2023 \u2013May 2023\nPROJECTS\nIntegrated AI-Powered Talent Assessment System(In Progress)                           Dec 2024 \u2013 Present\nTechnologies Used: NLTK, Transformers, PyTorch, Streamlit, Machine Learning.\nDeveloping an AI-powered recruitment system combining\u00a0resume analysis,\u00a0adaptive interviewing, and\u00a0data-driven reporting. Aims to enhance recruitment efficiency, reduce biases and provide actionable insights for recruiters and candidates.\nStudent Attendance Management System                                                     Jan 2024 \u2013 May 2024                                                        \nTechnologies Used: HTML, CSS, Basic  JavaScript, Python (Django), MySQL.\nA web-based application developed to streamline the process of managing and tracking student attendance for educational institutions. The system provides functionalities like secure login for teachers, class management, real-time attendance tracking, updates, and analytical reporting. \n",
+            "job_description": "HTML Developer\nSlidesigma India LLC is a web design and development company based in South Delhi. Due to the active COVID-19 crisis, we are working remotely. We are looking for an HTML developer with up to 3 years of experience. You are expected to work full-time and will be collaborating with our team and supervisors virtually.\nYears of Experience:\n3 years experience\nLanguage:\nMust speak English well\nDuties and Requirements\n- Writes flawless code\n- Proficient with HTML, HTML5, CSS and CSS3\n- Converting PSD to HTML\n- Other basic duties and research as required\nWorking days and times:\nMonday - Saturday, 10:00 a.m. - 6:00 p.m.\nContract length: 12 months\nJob Types: Full-time, Contract\nSalary: Up to \u20b917,000.00 per month\nExperience:\nCSS/CSS3: 3 years (Required)\nwork: 3 years (Required)\ntotal work: 3 years (Required)\nEducation:\nBachelor's (Required)\nLanguage:\nEnglish (Preferred)\nProgramming Languages needed:\nCSS (Required)\n",
+            "job_applied": "HTML Developer",
+            "score": 28.102222084999084,
+            "questions": [
+                {
+                    "question": "Based on the job description for the Data Scientist/ ML Engineer position at Game Change Solutions, can you discuss a project from your resume where you implemented machine learning algorithms and conducted data analysis and presented insights?",
+                    "response": "I didnt did any project using machine learning algorithms"
+                },
+                {
+                    "question": "Based on your interest in Artificial Intelligence and Machine Learning, could you tell me about a specific machine learning algorithm that you have implemented or worked with in one of your projects?",
+                    "response": null
+                },
+                {
+                    "question": "Can you please tell me about a specific project from your resume where you applied machine learning techniques and algorithms, and how it helped to achieve the project's objectives?",
+                    "response": null
+                },
+                {
+                    "question": "Based on your project experience with developing an AI-powered recruitment system and a student attendance management system, how do you think your skills align with the responsibilities and skills required for the Data Scientist/ML Engineer position at Game Change Solutions?",
+                    "response": null
+                },
+                {
+                    "question": "Based on your experience and skills, it seems like you have a good foundation in machine learning and data science. Can you talk about a specific project where you implemented machine learning algorithms to generate insights or solve a problem?",
+                    "response": null
+                }
+            ]
+        },
+        {
+            "name": "Jyostna",
+            "email": "karanamjyostna14@gmail.com",
+            "age": 20,
+            "sex": "Female",
+            "password": "12345",
+            "resume": "Jyostna Karanam\n\u2022 karanamjyostna14@gmail.com \u2022 (+91) 9440736579 \u2022 Guntur, Andhra Pradesh and 522003\n\u2022www.linkedin.com/in/jyostna-karanam \u2022 github.com/JyostnaKaranam\nPROFILE SUMMARY\nArtificial Intelligence and Machine Learning Undergraduate seeking opportunities to apply\nacademic knowledge and hands-on experience in dynamic professional environment to contribute\nto innovative projects and enhance technical skills.\nEDUCATION\nBachelors in Artificial Intelligence and Machine Learning |CGPA:8.6 2021 \u2013 present\nVasireddy Venkatadri Institute of Technology | Nambur, India\nIntermediate | Percentage : 97% 2019 \u2013 2021\nSri Chaitanya junior college | Guntur, India\nSSC | The Children's School | Guntur, India |GPA:9.8 2019\nTECHNICAL SKILLS\nProgramming Languages: Python.\nWeb Development: HTML, CSS\nFrameworks: Tailwind CSS, Streamlit\nDatabase Management: SQL\nMachine Learning: Supervised/Unsupervised Learning, Model Development,NLP.\nVersion Control: Git, GitHub\nCERTIFICATIONS\nInfosys Springboard \u2013 HTML, CSS, JavaScript | Infosys Jan 2023 \u2013May 2023\nPROJECTS\nIntegrated AI-Powered Talent Assessment System(In Progress) Dec 2024 \u2013 Present\nTechnologies Used: NLTK, Transformers, PyTorch, Streamlit, Machine Learning.\nDeveloping an AI-powered recruitment system combining resume analysis, adaptive interviewing,\nand data-driven reporting. Aims to enhance recruitment efficiency, reduce biases and provide\nactionable insights for recruiters and candidates.\nStudent Attendance Management System Jan 2024 \u2013 May 2024\nTechnologies Used: HTML, CSS, Basic JavaScript, Python (Django), MySQL.\nA web-based application developed to streamline the process of managing and tracking student\nattendance for educational institutions. The system provides functionalities like secure login for\nteachers, class management, real-time attendance tracking, updates, and analytical reporting.",
+            "job_description": "Data Scientist/ ML Engineer\nGame Change Solutions\n-\nGurgaon, Haryana\nTemporarily remote\n\u20b920,00,000 - \u20b925,00,000 a year\nWe are looking for a data scientist that will help us discover the information hidden in vast amounts of data and help us make smarter decisions to deliver even better products. Your primary focus will be in applying data mining techniques, doing statistical analysis, and building high quality prediction systems integrated with our products. Data Scientist at GameChange must be an energetic self-starter who can quickly grasp the company\u2019s vision, develop specific tactical plans, and begin implementation upon appropriate approvals. The candidate must be resourceful and able to deliver on a plan defined.\nResponsibilities \u2013\nData Crunching and data massaging on structured and unstructured data including Numerical, Text,\nAudio and Video data\nImplementation/fine-tuning of machine learning algorithms\nConducting Data science/machine learning experiments and presenting insights\nBuilding innovative data products using cutting edge tools and technologies\nConduct data analysis independently or with limited supervision to generate business insights\nConduct diagnostic on the data to identify the improvement opportunities, design data-backed\nperformance improvement strategy, liaise with internal teams\nRecord keeping and data warehousing to enable Advanced Analytics operations for generating\nmeaningful business insights\nDevelop high quality client deliverables such as R models, Python scripts etc.\nSkills required -\nExcellent understanding of machine learning techniques and algorithms, such as k-NN, Naive Bayes,\nSVM, Decision Forests, CNN, RNN, LSTM etc.\nExperience with common data science toolkits, such as R, Weka, NumPy, OpenCV, MatLab, etc.\nGreat communication skills\nExperience with data visualisation tools, such as D3.js, GGplot, etc.\nProficiency in using query languages such as SQL, Hive, Pig\nExperience with NoSQL databases, such as MongoDB, Cassandra, HBase\nGood applied statistics skills, such as distributions, statistical testing, regression, etc.\nGood scripting and programming skills\nJob Type: Full-time\nSalary: \u20b92,000,000.00 - \u20b92,500,000.00 per year\nExperience:\nData Science: 2 years (Preferred)\nwork: 1 year (Preferred)\nEducation:\nBachelor's (Preferred)\n",
+            "job_applied": "Data Scientist",
+            "score": 81.66494750976562,
+            "questions": [
+                {
+                    "question": "Can you provide an example of a successful negotiation with a key account buyer at Rakyan Beverage Pvt Ltd?",
+                    "response": "."
+                },
+                {
+                    "question": "Can you walk me through a specific example of a successful negotiation you had with a key account buyer during your time as a National Key Accounts Manager at Rakyan Beverage Pvt Ltd? How did you approach the negotiation, and what was the outcome?",
+                    "response": "."
+                },
+                {
+                    "question": "Can you elaborate on your experience as a National Key Accounts Manager at Rakyan Beverage Pvt Ltd? Specifically, could you provide an example of a successful account management strategy or initiative you implemented during your time there?",
+                    "response": "."
+                },
+                {
+                    "question": "Given your experience as a National Key Accounts Manager, could you please discuss a specific strategy you implemented that successfully improved distribution and market penetration for a product line in the FMCG sector?",
+                    "response": "."
+                },
+                {
+                    "question": "Based on your experience as a National Key Accounts Manager, can you provide an example of a successful negotiation you conducted with a key account buyer that resulted in a positive outcome for the company?",
+                    "response": "."
+                }
+            ]
+        },
+        {
+            "name": "jyostna_karanam",
+            "email": "karanamjyostna14@gmail.com",
+            "sex": "@rose",
+            "password": "data.json",
+            "resume": null,
+            "job_description": null,
+            "job_applied": null,
+            "score": "0",
+            "questions": null
+        },
+        {
+            "name": "Madhu",
+            "email": "kmadhumitha1312@gmail.com",
+            "sex": "1234",
+            "password": "data.json",
+            "resume": null,
+            "job_description": null,
+            "job_applied": null,
+            "score": "0",
+            "questions": null
+        }
+    ]
+}
