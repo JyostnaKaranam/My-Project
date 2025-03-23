@@ -1,16 +1,18 @@
 import streamlit as st
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+import nltk
+import os
+
+
+nltk.data.path = ["/home/ubuntu/My-Project/Web_based_applicant_selector/venv/nltk_data"]
+
+
+nltk.download('punkt', download_dir="/home/ubuntu/My-Project/Web_based_applicant_selector/venv/nltk_data")
 
 import json
-import torch
-
-from transformers import BertTokenizer, BertModel
-
-from PIL import Image
-
 import pytesseract
 from streamlit_option_menu import option_menu
-import os
+
 import pdfplumber
 import plotly.graph_objects as go
 import nltk
@@ -39,14 +41,15 @@ from transformers import BertModel, BertTokenizer
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
- 
+
+model = SentenceTransformer('all-MiniLM-L6-v2')  # You can choose a different model if needed
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = BertModel.from_pretrained('bert-base-uncased')
 os.environ['TESSDATA_PREFIX'] = "C:\Program Files (x86)\Tesseract-OCR"
 
 load_dotenv()
-nltk.download('punkt')
+nltk.download('punkt_tab')
 
 session_state = st.session_state
 if "user_index" not in st.session_state:
@@ -63,8 +66,10 @@ if "email" not in st.session_state:
 
 def signup(json_file_path="data.json"):
     st.title("Signup Page")
-    name = st.text_input("Username:")
+    st.write("Fill in the details below to create an account:")
+    name = st.text_input("Name:")
     email = st.text_input("Email:")
+    age = st.number_input("Age:", min_value=0, max_value=120)
     sex = st.radio("Sex:", ("Male", "Female", "Other"))
     password = st.text_input("Password:", type="password")
     confirm_password = st.text_input("Confirm Password:", type="password")
@@ -73,17 +78,17 @@ def signup(json_file_path="data.json"):
         if password == confirm_password:
             success, message = send_verification_email(email, session_state["verification_code"])
             if success:
-                st.session_state.email_verified = False  
+                st.session_state.email_verified = False  # Reset verification status
                 st.session_state.show_verification = True
             else:
                 st.error("Unable to send verification email at the moment. Please try again later.")
         else:
             st.error("Passwords do not match. Please try again.")
     if st.session_state.get("show_verification", False):
-        verification = st.text_input("Enter Email Verification code")
+        verification = st.text_input("Enter verification code")
         if st.button("Verify"):
             if verification.strip() == st.session_state.get("verification_code"):
-                user = create_account(name, email, sex, password, json_file_path)
+                user = create_account(name, email, age, sex, password, json_file_path)
                 session_state["logged_in"] = True
                 session_state["user_info"] = user
                 st.success("Account created and logged in successfully")
@@ -99,7 +104,7 @@ def check_login(username, password, json_file_path="data.json"):
             data = json.load(json_file)
 
         for user in data["users"]:
-            if user["name"] == username and user["password"] == password:
+            if user["email"] == username and user["password"] == password:
                 session_state["logged_in"] = True
                 session_state["user_info"] = user
                 st.success("Login successful!")
@@ -115,7 +120,9 @@ def check_login(username, password, json_file_path="data.json"):
 
 def initialize_database(json_file_path="data.json"):
     try:
+        # Check if JSON file exists
         if not os.path.exists(json_file_path):
+            # Create an empty JSON structure
             data = {"users": []}
             with open(json_file_path, "w") as json_file:
                 json.dump(data, json_file)
@@ -125,15 +132,18 @@ def initialize_database(json_file_path="data.json"):
 
 def create_account(name, email, age, sex, password, json_file_path="data.json"):
     try:
+        # Check if the JSON file exists or is empty
         if not os.path.exists(json_file_path) or os.stat(json_file_path).st_size == 0:
             data = {"users": []}
         else:
             with open(json_file_path, "r") as json_file:
                 data = json.load(json_file)
 
+        # Append new user data to the JSON structure
         user_info = {
             "name": name,
             "email": email,
+            "age": age,
             "sex": sex,
             "password": password,
             "resume": None,
@@ -144,7 +154,7 @@ def create_account(name, email, age, sex, password, json_file_path="data.json"):
         }
         data["users"].append(user_info)
 
-
+        # Save the updated data to JSON
         with open(json_file_path, "w") as json_file:
             json.dump(data, json_file, indent=4)
 
@@ -159,8 +169,8 @@ def create_account(name, email, age, sex, password, json_file_path="data.json"):
 
 
 def login(json_file_path="data.json"):
-    st.title("Login")
-    username = st.text_input("Enter username:")
+    st.title("Login Page")
+    username = st.text_input("Email:")
     password = st.text_input("Password:", type="password")
 
     login_button = st.button("Login")
@@ -196,11 +206,12 @@ def render_dashboard(user_info, json_file_path="data.json"):
         st.subheader("User Information:")
         st.write(f"Name: {user_info['name']}")
         st.write(f"Sex: {user_info['sex']}")
+        st.write(f"Age: {user_info['age']}")
     except Exception as e:
         st.error(f"Error rendering dashboard: {e}")
 def generate_reset_token():
     """Generate a random reset token"""
-    return ''.join(random.choices(string.digits, k=6))
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
 
 
 def save_reset_token(email, token):
@@ -212,6 +223,7 @@ def save_reset_token(email, token):
 
     reset_df['timestamp'] = pd.to_datetime(reset_df['timestamp'])
 
+    # Remove any existing tokens for this email
     reset_df = reset_df[reset_df['email'] != email]
     new_token = {
         'email': email,
@@ -232,15 +244,14 @@ def send_verification_email(email, reset_token):
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = email
-        msg['Subject'] = 'Email Verification Request'
+        msg['Subject'] = 'Account Verification Request'
 
         reset_link = f"{reset_token}"
 
         body = f"""
         Hello,
 
-        An Account Verification was requested for your account.
-
+        AnAccount Verification was requested for your account.
         Your verification code is: {reset_token}
 
         Please enter this code in the application to verify your account.
@@ -277,7 +288,6 @@ def send_reset_email(email, reset_token):
         Hello,
 
         A password reset was requested for your account.
-
         Your reset token is: {reset_token}
 
         Please enter this token in the application to reset your password.
@@ -337,6 +347,12 @@ def show_forgot_password_page():
     """Display forgot password form"""
     st.markdown("""
         <style>
+        .forgot-password-container {
+            background-color: ;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
         .reset-status {
             margin-top: 1rem;
             padding: 1rem;
@@ -347,12 +363,14 @@ def show_forgot_password_page():
 
     st.markdown("# 🔑 Reset Password")
 
-
+    # Initialize session state for reset flow
     if 'reset_step' not in st.session_state:
         st.session_state['reset_step'] = 'email'
 
+    st.markdown("<div class='forgot-password-container'>", unsafe_allow_html=True)
+
     if st.session_state['reset_step'] == 'email':
-        email = st.text_input(" Enter your email address")
+        email = st.text_input("📧 Enter your email address")
 
         if st.button("Send Reset Link", use_container_width=True):
             if not email:
@@ -369,9 +387,10 @@ def show_forgot_password_page():
                     st.error("Email address not found")
                     return
 
+            # Generate and save reset token
             reset_token = generate_reset_token()
             if save_reset_token(email, reset_token):
-
+                # Send reset email
                 success, message = send_reset_email(email, reset_token)
                 if success:
                     st.success("Reset instructions sent to your email")
@@ -382,7 +401,7 @@ def show_forgot_password_page():
                     st.error(f"Failed to send reset email: {message}")
 
     elif st.session_state['reset_step'] == 'verify':
-        st.info(f" Reset token sent to {st.session_state['reset_email']}")
+        st.info(f"📧 Reset token sent to {st.session_state['reset_email']}")
         token = st.text_input("🔑 Enter Reset Token")
 
         if st.button("Verify Token", use_container_width=True):
@@ -405,6 +424,7 @@ def show_forgot_password_page():
                 success, message = update_password(st.session_state['reset_email'], new_password)
                 if success:
                     st.success("Password reset successfully! Please login with your new password.")
+                    # Clear reset session state
                     del st.session_state['reset_step']
                     del st.session_state['reset_email']
                 else:
@@ -428,7 +448,7 @@ def extract_text(file) -> str:
     else:
         file_extension = os.path.splitext(file.name)[1].lower()
 
-
+    # PDF Handling
     if file_extension == '.pdf':
         if isinstance(file, str):
             with pdfplumber.open(file) as pdf:
@@ -437,7 +457,7 @@ def extract_text(file) -> str:
             with pdfplumber.open(file) as pdf:
                 text = '\n'.join(page.extract_text() for page in pdf.pages if page.extract_text())
 
-
+    # DOCX Handling
     elif file_extension == '.docx':
         if isinstance(file, str):
             doc = docx.Document(file)
@@ -445,7 +465,7 @@ def extract_text(file) -> str:
             doc = docx.Document(file)
         text = '\n'.join([para.text for para in doc.paragraphs])
 
-
+    # Image Handling
     elif file_extension in ['.jpg', '.jpeg', '.png', '.bmp', '.gif']:
         if isinstance(file, str):
             image = Image.open(file)
@@ -453,6 +473,7 @@ def extract_text(file) -> str:
             image = Image.open(file)
         text = pytesseract.image_to_string(image)
 
+    # Plain Text Handling
     else:
         if isinstance(file, str):
             with open(file, 'r', encoding='utf-8', errors='ignore') as f:
@@ -491,20 +512,24 @@ def process_text(text):
     return tokens
 
 
-def calculate_resume_score(job_description, resume):
+def calculate_bert_score(job_description, resume):
+    # Tokenize and encode the text
+    job_desc_tokens = tokenizer(job_description, return_tensors='pt', padding=True, truncation=True)
+    resume_tokens = tokenizer(resume, return_tensors='pt', padding=True, truncation=True)
 
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    # Get the embeddings from BERT
+    with torch.no_grad():
+        job_desc_embedding = model(**job_desc_tokens).last_hidden_state.mean(dim=1)
+        resume_embedding = model(**resume_tokens).last_hidden_state.mean(dim=1)
 
-    job_desc_embedding = model.encode(job_description)
-    resume_embedding = model.encode(resume)
-
-    similarity_score = cosine_similarity([job_desc_embedding], [resume_embedding])[0][0] * 100
-    return similarity_score
+    # Calculate cosine similarity
+    score = cosine_similarity(job_desc_embedding.numpy(), resume_embedding.numpy())
+    return score[0][0] * 100  # Convert to percentage
 
 
 
 def generate_question(resume_text, job_description_text, candidate_name, previous_response=None,
-                    previous_question=None):
+                      previous_question=None):
     prompt = f"Resume Text: {resume_text}\nJob Description: {job_description_text}\nCandidate Name: {candidate_name}\n"
     if previous_response and previous_question:
         prompt += f"Previous Response: {previous_response}\nPrevious Question: {previous_question}\n"
@@ -514,7 +539,7 @@ def generate_question(resume_text, job_description_text, candidate_name, previou
     messages = [
         {"role": "system", "content": "You are the interviewer."},
         {"role": "system",
-        "content": "You are interviewing a candidate. Ask a question based on the resume and job description. If the candidate has already answered a question, you can ask a follow-up question based on their response."},
+         "content": "You are interviewing a candidate. Ask a question based on the resume and job description. If the candidate has already answered a question, you can ask a follow-up question based on their response."},
         {"role": "user", "content": prompt}
     ]
     response = client.chat.completions.create(
@@ -525,10 +550,10 @@ def generate_question(resume_text, job_description_text, candidate_name, previou
 
 
 def generate_questions(resume_text, job_description_text, candidate_name, json_file_path="data.json"):
-
+    # If we're just starting, initialize session state for questions
     if "questions_list" not in st.session_state:
         st.session_state.questions_list = []
-
+        # Generate first 5 questions upfront
         for _ in range(5):
             previous_response = None
             previous_question = None
@@ -536,23 +561,25 @@ def generate_questions(resume_text, job_description_text, candidate_name, json_f
                 previous_response = st.session_state.questions_list[-1]["response"]
                 previous_question = st.session_state.questions_list[-1]["question"]
 
-            question = generate_question(summarize_t5(resume_text),
-                                        job_description_text,
-                                        candidate_name,
-                                        previous_response,
-                                        previous_question)
+            question = generate_question(resume_text,
+                                         job_description_text,
+                                         candidate_name,
+                                         previous_response,
+                                         previous_question)
             st.session_state.questions_list.append({"question": question, "response": None})
 
     return st.session_state.questions_list
 
 
 def interview_section(user_info, json_file_path="data.json"):
-    st.title("Interview Questions")
+    st.title("Interview Question Generator Chat")
+    st.subheader("Generate Interview Questions")
 
     if user_info["resume"] is None or user_info["job_description"] is None:
         st.warning("Please upload your resume and apply for a job to generate interview questions.")
         return
 
+    # Initialize session states
     if "current_question_index" not in st.session_state:
         st.session_state.current_question_index = 0
     if "current_response" not in st.session_state:
@@ -560,16 +587,17 @@ def interview_section(user_info, json_file_path="data.json"):
     if "question_number" not in st.session_state:
         st.session_state.question_number = 1
 
-
+    # Generate or get questions
     questions = generate_questions(user_info["resume"],
-                                user_info["job_description"],
-                                user_info["name"])
+                                   user_info["job_description"],
+                                   user_info["name"])
 
     if st.session_state.current_question_index < len(questions):
         current_question = questions[st.session_state.current_question_index]["question"]
         st.markdown("### Current Question")
         st.markdown(current_question)
 
+        # Add audio controls
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Play Question"):
@@ -579,6 +607,7 @@ def interview_section(user_info, json_file_path="data.json"):
                 except AssertionError:
                     st.error('No question found')
 
+        # Add voice input option
         with col2:
             input_method = st.radio("Choose input method:", ["Text", "Voice"])
 
@@ -598,32 +627,59 @@ def interview_section(user_info, json_file_path="data.json"):
         with col3:
             if st.button("Next Question"):
                 if st.session_state.current_response and len(st.session_state.current_response.strip()) > 0:
+                    # Save current response
                     questions[st.session_state.current_question_index]["response"] = st.session_state.current_response
 
-                    
+                    # Update JSON file
                     with open(json_file_path, "r+") as json_file:
                         data = json.load(json_file)
                         user_index = next((i for i, user in enumerate(data["users"])
-                                        if user["email"] == user_info["email"]), None)
+                                           if user["email"] == user_info["email"]), None)
                         if user_index is not None:
                             data["users"][user_index]["questions"] = questions
                             json_file.seek(0)
                             json.dump(data, json_file, indent=4)
                             json_file.truncate()
 
-                    
+                    # Move to next question and reset current response
                     st.session_state.current_question_index += 1
                     st.session_state.current_response = None
                     st.rerun()
                 else:
                     st.warning("Please provide a response before moving to the next question.")
+
+        # with col4:
+        # if st.button("Finish Interview"):
+        #     if st.session_state.current_response and len(st.session_state.current_response.strip()) > 0:
+        #         # Save final response
+        #         questions[st.session_state.current_question_index]["response"] = st.session_state.current_response
+
+        #         # Update JSON file with final state
+        #         with open(json_file_path, "r+") as json_file:
+        #             data = json.load(json_file)
+        #             user_index = next((i for i, user in enumerate(data["users"])
+        #                             if user["email"] == user_info["email"]), None)
+        #             if user_index is not None:
+        #                 data["users"][user_index]["questions"] = questions[:st.session_state.current_question_index + 1]
+        #                 json_file.seek(0)
+        #                 json.dump(data, json_file, indent=4)
+        #                 json_file.truncate()
+
+        #         st.success("Interview completed successfully!")
+        #         # Reset session state
+        #         del st.session_state.questions_list
+        #         del st.session_state.current_question_index
+        #         del st.session_state.current_response
+        #     else:
+        #         st.warning("Please provide a response before finishing the interview.")
     else:
         if st.button("Finish Interview"):
 
+            # Update JSON file with final state
             with open(json_file_path, "r+") as json_file:
                 data = json.load(json_file)
                 user_index = next((i for i, user in enumerate(data["users"])
-                                if user["email"] == user_info["email"]), None)
+                                   if user["email"] == user_info["email"]), None)
                 if user_index is not None:
                     data["users"][user_index]["questions"] = questions[:st.session_state.current_question_index + 1]
                     json_file.seek(0)
@@ -631,6 +687,7 @@ def interview_section(user_info, json_file_path="data.json"):
                     json_file.truncate()
 
             st.success("Interview completed successfully!")
+            # Reset session state
             del st.session_state.questions_list
             del st.session_state.current_question_index
             del st.session_state.current_response
@@ -658,6 +715,7 @@ def play_audio(file_path):
 
 def get_audio_input_with_buttons(current_question):
     """Get audio input from microphone with start/stop buttons"""
+    # Initialize session states
     if 'recording' not in st.session_state:
         st.session_state.recording = False
     if 'current_question' not in st.session_state:
@@ -679,9 +737,11 @@ def get_audio_input_with_buttons(current_question):
 
     if st.session_state.recording:
         with sr.Microphone() as source:
+            # Adjust for ambient noise when starting recording
             recognizer.adjust_for_ambient_noise(source, duration=0.5)
             placeholder.write("Recording... Press 'Stop Recording' when finished.")
             try:
+                # Remove timeout to allow continuous recording until stop is pressed
                 audio = recognizer.listen(source, timeout=None, phrase_time_limit=None)
                 placeholder.write("Processing your response...")
                 try:
@@ -728,25 +788,24 @@ def summarize_t5(text):
     return summary
 
 def main(json_file_path="data.json"):
-    with st.sidebar: 
-        st.title("Web Based Selector-Applicant Simulation System")       
+    # Replace the original sidebar with the option menu
+    with st.sidebar:
         page = option_menu(
-            menu_title='',
+            menu_title='Web Based Selector-Applicant Simulation System',
             options=['Signup/Login', 'Upload Resume', 'Resume Analysis', 'Generate Questions', 'Evaluate Scores'],
             icons=['person-circle', 'upload', 'file-earmark-text', 'question-circle', 'check-circle'],
             menu_icon='chat-text-fill',
-            default_index=0, 
+            default_index=0,  # Set default to Signup/Login
             styles={
                 "container": {"padding": "5!important", "background-color": 'black'},
-                "icon": {"color": "white", "font-size": "23px"}, 
+                "icon": {"color": "white", "font-size": "23px"},
                 "nav-link": {"color": "white", "font-size": "20px", "text-align": "left", "margin": "0px", "--hover-color": "blue"},
                 "nav-link-selected": {"background-color": "#02ab21"},
             }
         )
 
     if page == "Signup/Login":
-        st.title("Web-based Selector Applicant Simulation System")
-        st.subheader("Signup/Login")
+        st.title("Signup/Login Page")
         login_or_signup = st.radio(
             "Select an option", ("Login", "Signup", "Forgot Password?"), key="login_signup"
         )
@@ -755,7 +814,6 @@ def main(json_file_path="data.json"):
         elif login_or_signup == "Forgot Password?":
             show_forgot_password_page()
         else:
-
             token = generate_reset_token()
             if session_state["verification_code"] is None:
                 session_state["verification_code"] = token
@@ -768,11 +826,11 @@ def main(json_file_path="data.json"):
                 resume_text = extract_text(uploaded_file)
                 st.write("File name: ", uploaded_file.name)
                 st.success("File uploaded successfully!")
-                st.image(Image.open('Images/logo.png'), use_container_width=True)
+                st.image(Image.open('Images/logo.png'), use_column_width=True)
                 with open(json_file_path, "r+") as json_file:
                     data = json.load(json_file)
                     user_index = next((i for i, user in enumerate(data["users"]) if
-                                    user["email"] == session_state["user_info"]["email"]), None)
+                                       user["email"] == session_state["user_info"]["email"]), None)
                     if user_index is not None:
                         user_info = data["users"][user_index]
                         user_info["resume"] = resume_text
@@ -812,11 +870,11 @@ def main(json_file_path="data.json"):
                 job_description_text = extract_text(file_path)
                 st.subheader("Job Description:")
                 st.write(job_description_text)
-                if st.button("Submit"):
+                if st.button("Apply"):
                     with open(json_file_path, "r+") as json_file:
                         data = json.load(json_file)
                         user_index = next((i for i, user in enumerate(data["users"]) if
-                                        user["email"] == session_state["user_info"]["email"]), None)
+                                           user["email"] == session_state["user_info"]["email"]), None)
                         if user_index is not None:
                             user_info = data["users"][user_index]
                             user_info["job_description"] = job_description_text
@@ -827,7 +885,7 @@ def main(json_file_path="data.json"):
                             json_file.truncate()
                         else:
                             st.error("User  not found.")
-                    st.success("submitted successfully!")
+                    st.success("Job application submitted successfully!")
 
         else:
             st.warning("Please login/signup to view the dashboard.")
@@ -852,7 +910,10 @@ def main(json_file_path="data.json"):
 
             job_description_text = session_state["user_info"]["job_description"]
 
-            resume_score = float(calculate_resume_score(job_description_text, resume_summary))
+            # Use BERT to calculate the score
+
+            # Calculate the score using BERT
+            bert_score = float(calculate_bert_score(job_description_text, resume_summary))
 
             with open(json_file_path, "r+") as json_file:
                 data = json.load(json_file)
@@ -861,7 +922,7 @@ def main(json_file_path="data.json"):
                     None)
                 if user_index is not None:
                     user_info = data["users"][user_index]
-                    user_info["score"] = float(resume_score) 
+                    user_info["score"] = float(bert_score)  # Ensure it's a standard float
                     session_state["user_info"] = user_info
                     json_file.seek(0)
                     json.dump(data, json_file, indent=4)
@@ -869,45 +930,50 @@ def main(json_file_path="data.json"):
                 else:
                     st.error("User  not found.")
 
+            # Visualization
 
             st.header("Resume Score")
 
-            if resume_score >= 60:
+            if bert_score >= 60:
 
-                st.success(f"Congratulations! Your resume matches {resume_score:.2f}% with the job description.")
+                st.success(f"Congratulations! Your resume matches {bert_score:.2f}% with the job description.")
 
-            elif resume_score >= 20:
+            elif bert_score >= 20:
 
                 st.warning(
-                    f"Your resume matches {resume_score:.2f}% with the job description. Consider improving it for better results.")
+                    f"Your resume matches {bert_score:.2f}% with the job description. Consider improving it for better results.")
 
             else:
 
                 st.error(
-                    f"Your resume matches only {resume_score:.2f}% with the job description. Consider significant improvements.")
+                    f"Your resume matches only {bert_score:.2f}% with the job description. Consider significant improvements.")
 
+            # Create a Plotly figure for the pie chart
 
-            percentage_score = resume_score / 100
+            percentage_score = bert_score / 100
 
             percentage_remainder = 1 - percentage_score
 
             fig = go.Figure(data=[go.Pie(labels=['Matched', 'Unmatched'],
 
-                                        values=[percentage_score, percentage_remainder],
+                                         values=[percentage_score, percentage_remainder],
 
-                                        hole=0.3,
+                                         hole=0.3,
 
-                                        marker_colors=['rgba(0, 128, 0, 0.7)', 'rgba(255, 0, 0, 0.7'])])
+                                         marker_colors=['rgba(0, 128, 0, 0.7)', 'rgba(255, 0, 0, 0.7'])])
 
-
+            # Update layout to add title
 
             fig.update_layout(title_text="Resume Score")
 
+            # Display the chart
 
             st.plotly_chart(fig)
+            # compare with other candidates
             st.subheader("How does your resume compare with other candidates?")
             role = session_state["user_info"]["job_applied"]
             scores = [int(user["score"]) for user in data["users"] if user["job_applied"] == role]
+            # Plot an interactive graph
             fig = go.Figure()
             fig.add_trace(go.Histogram(x=scores,
                                        histnorm='percent',
@@ -938,6 +1004,7 @@ def main(json_file_path="data.json"):
 
             st.subheader("Evaluate Scores")
 
+            # Check if questions exist
 
             if user_info["questions"] is not None and len(user_info["questions"]) > 0:
 
@@ -952,6 +1019,8 @@ def main(json_file_path="data.json"):
 
                 st.subheader("Score")
 
+                # Calculate the score
+
                 score = 0
 
                 count = 0
@@ -963,8 +1032,9 @@ def main(json_file_path="data.json"):
 
                     ques = question["question"]
 
-                    score += calculate_resume_score(process_text(ques), process_text(response))
+                    score += calculate_bert_score(process_text(ques), process_text(response))
 
+                # Check if count is greater than zero to avoid division by zero
 
                 if count > 0:
 
@@ -972,7 +1042,7 @@ def main(json_file_path="data.json"):
 
                 else:
 
-                    score = 0  
+                    score = 0  # Handle the case where there are no questions
 
                 st.write(f"Score: {score} %")
 
@@ -986,6 +1056,9 @@ def main(json_file_path="data.json"):
             st.warning("Please login/signup to view the dashboard.")
 
 if __name__ == "__main__":
+    import os
+    import nltk
+
     initialize_database()
     nltk.download('punkt')
     nltk.download('stopwords')
