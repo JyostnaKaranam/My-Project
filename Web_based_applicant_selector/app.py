@@ -49,7 +49,7 @@ model = BertModel.from_pretrained('bert-base-uncased')
 os.environ['TESSDATA_PREFIX'] = "C:\Program Files (x86)\Tesseract-OCR"
 
 load_dotenv()
-nltk.download('punkt_tab')
+nltk.download('punkt')
 
 session_state = st.session_state
 if "user_index" not in st.session_state:
